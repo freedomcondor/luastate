@@ -67,7 +67,7 @@ options  <a table>
       ...
    }
 
-   initial_state = statename   <string>  the statename  
+   initial = statename   <string>  the statename  
             if there is substates, must assign an initial state
 
    transitions =    <a table>
@@ -114,59 +114,59 @@ local State =
 State.__index = State            
 --setmetatable(State,State)    -- don't do that, it will enter a loop when trying to find a index
 
-function State:create(options)
+function State:create(configuration)
    -- Inherite
-   local state_object = {}
-   setmetatable(state_object, self)
+   local instance = {}
+   setmetatable(instance, self)
    self.__index = self
-      --the metatable of state_object would be whoever owns this create
+      --the metatable of instance would be whoever owns this create
       --so you can :  a = State:create();  b = a:create();  grandfather-father-son
 
    -- Asserts
-   if options == nil then return state_object end  -- return an State object with only basic thing
-   if options.substates ~= nil and options.initial_state == nil then
+   if configuration == nil then return instance end  -- return an State object with only basic thing
+   if configuration.substates ~= nil and configuration.initial == nil then
       print("bad create option: There are substates, but initial not assigned\n") return nil end
       -- check condition
          -- to be filled, 
          -- condition is optional
          -- but if you like you can also check the structure of conditions, 
 
-   -- add options into state object
-   state_object.id = options.id
-   state_object.substates = options.substates
-   state_object.transitions = options.transitions
-   state_object.method = options.method
+   -- add configuration into state object
+   instance.id = configuration.id
+   instance.substates = configuration.substates
+   instance.transitions = configuration.transitions
+   instance.method = configuration.method
       -- those may need to be changed to table.copy,
       -- because if do something like
-      -- options = {xxxx}
-      --  a.create(options)
-      --  b.create(options)
+      -- configuration = {xxxx}
+      --  a.create(configuration)
+      --  b.create(configuration)
       -- then a and b may share the same memery
-   --state_object.data = options.data or {}
+   --instance.data = configuration.data or {}
       -- this is fine if do not inherite data from fathers, 
       -- otherwise may need to do something like this:
       -- but also care about the memery sharing problem
          ---[[
-         state_object.data={}
+         instance.data={}
          for index,value in pairs(self.data) do
-            state_object.data[index] = value
+            instance.data[index] = value
          end
             -- equals to table.copy
-         if options.data ~= nil then
-            for index,_ in pairs(options.data) do
-               state_object.data[index] = options.data[index]
+         if configuration.data ~= nil then
+            for index,_ in pairs(configuration.data) do
+               instance.data[index] = configuration.data[index]
             end
          end
          --]]
 
-   if options.substates ~= nil then
-      state_object.current = state_object.substates[options.initial_state]
-      state_object.substates.EXIT = State.EXIT  -- add an exit substate
+   if configuration.substates ~= nil then
+      instance.current = instance.substates[configuration.initial]
+      instance.substates.EXIT = State.EXIT  -- add an exit substate
    else
-      state_object.current = nil
+      instance.current = nil
    end
 
-   return state_object
+   return instance
 end
 
 function State:step()

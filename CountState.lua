@@ -1,30 +1,30 @@
-local printState = require('PrintState')
+local PrintState = require('PrintState')
 
---local countState = printState:create()
+--local CountState = PrintState:create()
 
-countState = {}
-function countState:create(options)
-   local countState_ob = printState:create(options)
-   setmetatable(countState_ob, self)
+CountState = {}
+function CountState:create(configuration)
+   local instance = PrintState:create(configuration)
+   setmetatable(instance, self)
    self.__index = self
 
-   return countState_ob
+   return instance
 end
 
-function countState:method(father)
-   printState.method(self)
+function CountState:method(parent)
+   PrintState.method(self)
 
    --Add a transition
-   if father.transitions['count3'] == nil then  
-      father.transitions['count3'] = 
+   if parent.transitions['count3'] == nil then  
+      parent.transitions['count3'] = 
       {
          condition = function(dt) return dt.i==3 end,
          from = 'a', to = 'b',
       }
    end
 
-   --print(self.data.string,father.data.i)  -- for debug
-   father.data.i = father.data.i + 1
+   --print(self.data.string,parent.data.i)  -- for debug
+   parent.data.i = parent.data.i + 1
 end
 
-return countState
+return CountState

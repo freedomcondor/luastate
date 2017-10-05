@@ -1,36 +1,70 @@
 == general comments ==
-- indentation, let's use three spaces, no tabs.
-- names of states: State, printState, countState --> Let's start with a capital letter for State types: State, PrintState, CountState
-- make sure you save changes and close VIM before sending files, commiting changes to the repository, otherwise we get .swp files everywhere
+done - indentation, let's use three spaces, no tabs.
+done - names of states: State, printState, countState --> Let's start with a capital letter for State types: State, PrintState, CountState
+wont again - make sure you save changes and close VIM before sending files, commiting changes to the repository, otherwise we get .swp files everywhere
 
 == main_print.lua ==
-- c = printState:create{string = "Michael"}, careful, I think "string" is the name of a lua library, perhaps use "text" instead
+done - c = printState:create{string = "Michael"}, careful, I think "string" is the name of a lua library, perhaps use "text" instead
 - substate table
-   - initial_state --> initial (shorter to write)
+  done - initial_state --> initial (shorter to write)
    - we current have keys a,b,c,d,etc for assigning states to. let's just use the key as the state id and remove the state_object.id variable. syntax:
 
    substates = {
       ["printmichael"] = PrintState{text = "Michael"},
       ["printsaid"] = PrintState{text = "said"},
    },
-
+   [-----------------------
+   Harry: Actually, in lua I_am_a_table = {aaa = bbb} has the same meaning of:
+            1. I_am_a_table['aaa'] = bbb
+            2. I_am_a_table.aaa = bbb
+          Therefore in this case, it is like this:  state.substates.a = {whatever this substate is}
+            and we can use a string of str = "a" to index this substate: state.substates[str]
+   ]-----------------------
    - is there any advantage to holding the string inside 'initial' instead of the actual state, e.g.?
    initial = "printmichael"; --> initial = substates("printmichael");
-- transitions table
+   [-----------------------
+   Harry: I actually did try to use actual state rather than string, but when create the state, we use xxx = State:create({
+                        substates = {
+                           a = {a state}
+                        }
+                        initial = <try to point the "a" state>
+                    })
+                 <--------------
+                 here, if we just use initial = a, this a won't be recognized
+                 we have to do this:
+                 configuration = {
+                    substates = {
+                       a = {a state}
+                    }
+                    initial = configuration.substates.a     <-- too long
+                 }
+                 >-------------
+   ]-----------------------
+<working on it>- transitions table
    - make condition optional, e.g. so that assigning it overwrites a default function that always returns true
 
 == State.lua ==
-- function State:create(options) --> function State:create(configuration)
-- state_object --> instance (correct terminology)
+done - function State:create(options) --> function State:create(configuration)
+done - state_object --> instance (correct terminology)
 
 == CountState.lua / PrintState.lua ==
-- father --> parent (correct terminology)
+done - father --> parent (correct terminology)
 - does countState:method try to add a transition to its table every time it is run? I think we need to rethink how this is designed. Perhaps we just update State.current from countState:method and remove the transition table? E.g.
+    [--------------------
+     Harry: Yes it tries every time, but the new added transiton has a index, so it first checks whether the index exists, if not it adds a new transition 
+    ]--------------------
 
 function countState:method(father)
-	printState.method(self) -- I assume this line is just for debugging?
+   printState.method(self) -- I assume this line is just for debugging?
 
-	parent.data.i = parent.data.i + 1 -- use parent, not father. Why do we need to use parent.data here?
+    [--------------------
+     Harry: countState inherites from PrintState, I want the method of CountState has the same function of PrintState, and besides, it counts, so this is what I did.
+    ]--------------------
+
+   parent.data.i = parent.data.i + 1 -- use parent, not father. Why do we need to use parent.data here?
+    [--------------------
+   Harry: because i belongs to the root state. Otherwise the conditions in transitions won't be able to see it.
+    ]--------------------
 
    local next = nil
 
@@ -39,6 +73,12 @@ function countState:method(father)
    end
    return next
 end
+   [--------------------
+   Harry: I got what you mean, let me think of a solution of this
+   ]-------------------
 
 == main_count.lua ==
 - a = countState:create{string = "I"}, why does count state take a string?
+    [------------------
+    Harry: CountState inherite from PrintState, it has the function of Printstate.
+    ]------------------

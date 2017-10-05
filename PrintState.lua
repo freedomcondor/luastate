@@ -1,28 +1,29 @@
 local State = require('State')
 
---local printState = State:create()
+--local PrintState = State:create()
+   -- don't need to do this because it is done in create()
 
-printState = {}
-function printState:create(options)
-   local printState_ob = State:create(options)
-   setmetatable(printState_ob, self)
+PrintState = {}
+function PrintState:create(configuration)
+   local instance = State:create(configuration)
+   setmetatable(instance, self)
    self.__index = self
 
-   printState_ob.data.string = options.string
+   instance.data.text = configuration.text
 
    --[[
-   printState_ob.method =  function (self)
+   instance.method =  function (self)
                         print(self.data.string)
                      end
    --]]
 
-   return printState_ob
+   return instance
 end
 
 ---[[
-function printState:method()
-   print(self.data.string)
+function PrintState:method()
+   print(self.data.text)
 end
 --]]
 
-return printState
+return PrintState

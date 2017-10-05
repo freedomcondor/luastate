@@ -10,19 +10,19 @@ local machine = State:create
       --EXIT = State.EXIT,
       a = "a",
       b = "b",
-      c = printState:create{string = "Michael"},
-      d = printState:create{string = "said"},
+      c = printState:create{text = "Michael"},
+      d = printState:create{text = "said"},
       e = State:create
          {
             id = "substate",
             substates = 
             {
-               a = countState:create{string = "I"},
-               b = countState:create{string = "am"},
-               c = countState:create{string = "Harry"},
+               a = countState:create{text = "I"},
+               b = countState:create{text = "am"},
+               c = countState:create{text = "Harry"},
             -- EXIT = State.EXIT,
             },
-            initial_state = 'a',
+            initial = 'a',
             transitions = 
             {
                --{condition = function(dt) return dt.i==3 end, 
@@ -37,7 +37,7 @@ local machine = State:create
             data = {i = 0}
          },
    },
-   initial_state = 'a',
+   initial = 'a',
    transitions =
    {
       {condition = function (dt) return true end,from = 'a', to = 'b'},

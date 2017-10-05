@@ -6,22 +6,22 @@ options =
    id = "just a machine",
    substates = {  
       a = "a",  b = "b", 
-      c = printState:create{string = "Michael"},
-      d = printState:create{string = "said"},
+      c = printState:create{text = "Michael"},
+      d = printState:create{text = "said"},
       e = State:create{
             id = "substate",
             substates = {
-               a = printState:create{string = "I"},
-               b = printState:create{string = "am"},
-               c = printState:create{string = "Harry"},  },
-            initial_state = 'a',
+               a = printState:create{text = "I"},
+               b = printState:create{text = "am"},
+               c = printState:create{text = "Harry"},  },
+            initial = 'a',
             transitions = { {condition = function(dt) return true end, from = 'a', to = 'b'},
                         {condition = function(dt) return true end, from = 'b', to = 'c'}, 
                         {condition = function(dt) return true end, from = 'c', to = 'EXIT'}, 
                        },
       }, -- end of e create
    }, -- end of substates
-   initial_state = 'a',
+   initial = 'a',
    transitions ={ {condition = function (dt) return true end,from = 'a', to = 'b'},
                {condition = function (dt) return true end,from = 'b', to = 'c'},
                {condition = function (dt) return true end,from = 'c', to = 'd'},
