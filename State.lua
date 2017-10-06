@@ -4,6 +4,7 @@ Explanations:
 A State should have:
 {
    class = "State"      
+   INIT = {flag}
    EXIT = {flag}
          those are flags
    step()            <a function>
@@ -69,6 +70,7 @@ options  <a table>
 
    initial = statename   <string>  the statename  
             if there is substates, must assign an initial state
+         -- since there is and INIT state now, do not need to have initial
 
    transitions =    <a table>
    {
@@ -107,6 +109,7 @@ options  <a table>
 local State = 
 {
    class = "State",
+   INIT = {initflag="flagflag"}, 
    EXIT = {exitflag="flagflag"}, 
             -- this is just a flag, {exitflag="flagflag"} can be anything unique
    data = {}
@@ -124,12 +127,15 @@ function State:create(configuration)
 
    -- Asserts
    if configuration == nil then return instance end  -- return an State object with only basic thing
-   if configuration.substates ~= nil and configuration.initial == nil then
-      print("bad create option: There are substates, but initial not assigned\n") return nil end
-      -- check condition
-         -- to be filled, 
-         -- condition is optional
-         -- but if you like you can also check the structure of conditions, 
+   --if configuration.substates ~= nil and configuration.initial == nil then
+      --print("bad create option: There are substates, but initial not assigned\n") return nil end
+         -- since there is and INIT state now, do not need to have initial
+
+    -- check condition
+      -- to be filled, 
+      -- condition is optional
+      -- but if you like you can also check the structure of conditions, 
+      -- there may be no {from INIT to xxx} or {from xxx to EXIT} transition,but it's ok for robots
 
    -- add configuration into state object
    instance.id = configuration.id
@@ -160,8 +166,10 @@ function State:create(configuration)
          --]]
 
    if configuration.substates ~= nil then
-      instance.current = instance.substates[configuration.initial]
+      --instance.current = instance.substates[configuration.initial]
       instance.substates.EXIT = State.EXIT  -- add an exit substate
+      instance.substates.INIT = State.INIT  -- add an exit substate
+      instance.current = instance.substates.INIT
    else
       instance.current = nil
    end
@@ -227,6 +235,72 @@ function State:step()
                break
          end
       end
+   end
+
+   return 0
+end
+
+function State:stepSingle()
+   --[[
+      explanations:
+         three conditions may happen:
+         1. the owner of this step is a state with everything (substates..): 
+            run it as a normal state, check the current substates
+               for each current substate, 2 conditions:
+                  1. this substate is a state 
+                        run stepSingle
+                        if the substate exited, check transition
+                        if not stay
+                  2. this substates is not a state (a string maybe, do not have a method)
+                        check transiton
+
+         2. It is a state with nothing (no substates, no currents...)
+               do nothing (presume its method has run outside before the step)
+         3. It is not a state, a string maybe
+               do nothing (in fact this condition may not even happen)
+   --]]
+
+   --[[
+   if self.method ~= nil then    
+      self:method(self.data)
+   end   
+   --]]
+      -- have to run method outside step if method need to change transtions, because
+      -- self need to be a parameter in method
+
+   --If no substates, do nothing
+   if self.substates == nil then
+      return -1
+   end
+
+   --check current substate, see if it is has substates
+   if self.current == self.EXIT then return -1 end
+
+   flag = -1
+   if self.current.class == "State" and
+      self.current.stepSingle ~= nil and 
+      type(self.current.stepSingle) == "function" then
+         flag = self.current:stepSingle()
+   end
+
+   if flag ~= 0 then
+      local flag = 0
+      for _, focal_tran in pairs(self.transitions) do 
+         -- focal_tran would be a transition table
+         if    (type(focal_tran.condition) == 'function' and focal_tran.condition(self.data) or
+            type(focal_tran.condition) ~= 'function' and focal_tran.condition   ) and
+            self.substates[focal_tran.from] == self.current then
+               --print("from:",self.substates[focal_tran.from])   --for debug
+               --print("to",self.substates[focal_tran.to])        --for debug
+               self.current = self.substates[focal_tran.to]
+               flag = 1
+               break
+         end
+      end
+
+      --if flag == 1 and type(self.current.method) == 'function' then self.current:method(self) end
+      if type(self.current.method) == 'function' then self.current:method(self) end
+      if self.current == self.EXIT then return -1 end
    end
 
    return 0
