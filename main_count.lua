@@ -8,7 +8,7 @@ local machine = State:create
    substates = 
    {  
       --EXIT = State.EXIT,
-      a = "a",
+      a = State:create{method = function()print("haha");return 'b' end},
       b = "b",
       c = printState:create{text = "Michael"},
       d = printState:create{text = "said"},
@@ -22,7 +22,7 @@ local machine = State:create
                c = countState:create{text = "Harry"},
             -- EXIT = State.EXIT,
             },
-            --initial = 'a',
+            initial = 'a',
             transitions = 
             {
                --{condition = function(dt) return dt.i==3 end, 
@@ -33,24 +33,36 @@ local machine = State:create
                   from = 'b', to = 'c'},
                {condition = function(dt) return dt.i==9 end,
                   from = 'c', to = 'EXIT'},
-               {condition = function(dt) return true end,
-                  from = 'INIT', to = 'a'},
+               --{condition = function(dt) return true end,
+                --  from = 'INIT', to = 'a'},
             },
-            data = {i = 0}
+            data = {i = 0},
+            method = function()
+                        print("I am the entry of the substate");
+                        return 0
+                     end,
          },
+      f = printState:create{text = "finish"},
    },
    initial = 'a',
    transitions =
    {
-      {condition = function (dt) return true end,from = 'INIT', to = 'a'},
-      {condition = function (dt) return true end,from = 'a', to = 'b'},
-      {condition = function (dt) return true end,from = 'b', to = 'c'},
-      {condition = function (dt) return true end,from = 'c', to = 'd'},
+      --{condition = function (dt) return true end,from = 'INIT', to = 'a'},
+      --{condition = function (dt) return true end,from = 'a', to = 'b'},
+      --{condition = true,from = 'a', to = 'b'},
+
+      --{condition = function (dt) return true end,from = 'b', to = 'c'},
+      {condition = true,from = 'b', to = 'c'},
+      --{condition = function (dt) return true end,from = 'c', to = 'd'},
+      {condition = true,from = 'c', to = 'd'},
       {condition = function (dt) return true end,from = 'd', to = 'e'},
-      {condition = function (dt) return true end,from = 'e', to = 'EXIT'},
+      {condition = function (dt) return true end,from = 'e', to = 'f'},
+      {condition = function (dt) return true end,from = 'f', to = 'EXIT'},
    },
 }     --})
 
+--machine:step()
+---[[
 print("1")
 machine:stepSingle()
 print("2")
@@ -83,3 +95,6 @@ print("15")
 machine:stepSingle()
 print("16")
 machine:stepSingle()
+print("17")
+machine:stepSingle()
+--]]

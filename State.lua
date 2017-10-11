@@ -166,6 +166,8 @@ function State:create(configuration)
          --]]
 
    if configuration.substates ~= nil then
+      instance.transitions.init = {condition = function (dt) return true end, 
+                                   from ='INIT',to = configuration.initial}
       --instance.current = instance.substates[configuration.initial]
       instance.substates.EXIT = State.EXIT  -- add an exit substate
       instance.substates.INIT = State.INIT  -- add an exit substate
@@ -213,7 +215,13 @@ function State:step()
       -- run method(self) if this method changes transtions
    while self.current ~= self.EXIT do
       --if self.current.method ~= nil then self.current:method(self) end
-      if type(self.current.method) == 'function' then self.current:method(self) end
+      local ret
+      if type(self.current.method) == 'function' then ret = self.current:method(self) end
+
+      --If method returns a string, check this string and jump to somewhere else and go next round
+      if type(ret == 'string') and self.substates[ret] ~= nil then
+         self.current = self.substates[ret]
+      else --for continue end if
 
       --print("current",self.current)     -- for debug
 
@@ -235,6 +243,7 @@ function State:step()
                break
          end
       end
+      end -- for continue
    end
 
    return 0
@@ -276,30 +285,52 @@ function State:stepSingle()
    --check current substate, see if it is has substates
    if self.current == self.EXIT then return -1 end
 
-   flag = -1
-   if self.current.class == "State" and
+   --if current is a normal state, run its stepsingle, 
+      --(presume its method has been called right after the transition)
+   --if nextstep is set, means last method returns a transiton, do not run step
+   local flag = -1
+   if self.nextstep == nil and
+      self.current.class == "State" and
       self.current.stepSingle ~= nil and 
       type(self.current.stepSingle) == "function" then
          flag = self.current:stepSingle()
    end
 
+   --flag == -1 means this current has finished, proceed to transiton, 
+      --or stay return 0
    if flag ~= 0 then
-      local flag = 0
-      for _, focal_tran in pairs(self.transitions) do 
-         -- focal_tran would be a transition table
-         if    (type(focal_tran.condition) == 'function' and focal_tran.condition(self.data) or
-            type(focal_tran.condition) ~= 'function' and focal_tran.condition   ) and
-            self.substates[focal_tran.from] == self.current then
-               --print("from:",self.substates[focal_tran.from])   --for debug
-               --print("to",self.substates[focal_tran.to])        --for debug
-               self.current = self.substates[focal_tran.to]
-               flag = 1
-               break
+      if self.nextstep == nil then
+         flag = 0    -- this flag seem to be not useful
+         for _, focal_tran in pairs(self.transitions) do 
+            -- focal_tran would be a transition table
+            if    (type(focal_tran.condition) == 'function' and focal_tran.condition(self.data) or
+               type(focal_tran.condition) ~= 'function' and focal_tran.condition   ) and
+               self.substates[focal_tran.from] == self.current then
+                  --print("from:",self.substates[focal_tran.from])   --for debug
+                  --print("to",self.substates[focal_tran.to])        --for debug
+                  self.current = self.substates[focal_tran.to]
+                  flag = 1
+                  break
+            end
          end
+      else
+         self.current = self.nextstep
+         flag = 1
       end
 
       --if flag == 1 and type(self.current.method) == 'function' then self.current:method(self) end
-      if type(self.current.method) == 'function' then self.current:method(self) end
+      local ret
+      if type(self.current.method) == 'function' then ret = self.current:method(self) end
+         -- so method has two parameters, (first: current it self, second: parent itself)
+
+      --If method returns a string, check this string and jump to somewhere else and go next round
+      if type(ret == 'string') and self.substates[ret] ~= nil then
+        -- self.current = self.substates[ret]
+         self.nextstep = self.substates[ret]
+      else
+         self.nextstep = nil
+      end
+
       if self.current == self.EXIT then return -1 end
    end
 
