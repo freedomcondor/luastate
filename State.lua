@@ -142,6 +142,7 @@ function State:create(configuration)
    instance.substates = configuration.substates
    instance.transitions = configuration.transitions
    instance.method = configuration.method
+   instance.initial_method = configuration.initial_method
       -- those may need to be changed to table.copy,
       -- because if do something like
       -- configuration = {xxxx}
@@ -240,6 +241,15 @@ function State:step()
                --print("from:",self.substates[focal_tran.from])   --for debug
                --print("to",self.substates[focal_tran.to])        --for debug
                self.current = self.substates[focal_tran.to]
+
+               -- set it to initial
+               if type(self.current.initial_method) == 'function' then 
+                  self.current:initial_method() 
+               end
+               if self.current.substates ~= nil then
+                  self.current.current = self.current.INIT
+               end
+
                break
          end
       end
@@ -309,6 +319,7 @@ function State:stepSingle()
                   --print("from:",self.substates[focal_tran.from])   --for debug
                   --print("to",self.substates[focal_tran.to])        --for debug
                   self.current = self.substates[focal_tran.to]
+
                   flag = 1
                   break
             end
@@ -316,6 +327,14 @@ function State:stepSingle()
       else
          self.current = self.nextstep
          flag = 1
+      end
+
+      -- set it to initial
+      if type(self.current.initial_method) == 'function' then 
+         self.current:initial_method() 
+      end
+      if self.current.substates ~= nil then
+         self.current.current = self.current.INIT
       end
 
       --if flag == 1 and type(self.current.method) == 'function' then self.current:method(self) end

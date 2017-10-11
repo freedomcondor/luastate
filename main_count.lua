@@ -41,6 +41,7 @@ local machine = State:create
                         print("I am the entry of the substate");
                         return 0
                      end,
+            initial_method = function(self) self.data.i = 0 end,
          },
       f = printState:create{text = "finish"},
    },
@@ -57,7 +58,8 @@ local machine = State:create
       {condition = true,from = 'c', to = 'd'},
       {condition = function (dt) return true end,from = 'd', to = 'e'},
       {condition = function (dt) return true end,from = 'e', to = 'f'},
-      {condition = function (dt) return true end,from = 'f', to = 'EXIT'},
+      --{condition = function (dt) return true end,from = 'f', to = 'EXIT'},
+      {condition = function (dt) return true end,from = 'f', to = 'c'},
    },
 }     --})
 
@@ -96,5 +98,17 @@ machine:stepSingle()
 print("16")
 machine:stepSingle()
 print("17")
+machine:stepSingle()
+print("18")
+machine:stepSingle()
+print("19")
+machine:stepSingle()
+print("20")
+machine:stepSingle()
+print("21")
+machine:stepSingle()
+print("22")
+machine:stepSingle()
+print("23")
 machine:stepSingle()
 --]]
