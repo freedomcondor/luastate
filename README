@@ -1,0 +1,25 @@
+Weixu ZHU (Harry)
+	zhuweixu_harry@126.com
+--------------------------------------------------------------
+
+you will find several lua files in the folder, among which:
+	State.lua is the implementation of State Machine
+	CountState.lua and PrintState.lua inherit from State.lua defining two kinds of state of specific use.
+	main_count.lua and main_print.lua is two examples to use state machine.
+
+--------------------------------------------------------------
+
+to use this statemachine, please refer to those two main files to see the format. 
+
+1. substates: 	you define some substates first. Each substate can be anything (int, string, table.., 				 or a statemachine). If it is a table and have a method function, this function will 
+				be called entering this state.
+
+2. transitions: you can define transtions by setting up the transtion table (as in the example). 
+				Or, you can return a string in method function of a substate to tell the machine 
+				which substate is next.
+
+3. init: 		you can specify a initial state, or it is by default constant INIT, you will have to 				define a transition from 'INIT' to somewhere. Sometimes an initial_method is needed, 
+				it will be called in the start of the statemachine.
+
+4. data:		you can create an table of data, and this data table can be accessed by substates, 
+				methods, and transitions. just use the right parameter as the examples do.
